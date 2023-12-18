@@ -35,12 +35,14 @@ URL = None
 DOWNLOAD_URL = None
 CLASSIFIERS = None
 PLATFORMS = None
+FORCE_CUDA_VERSION='11x'
 
 def get_cuda_version():
-    nvcc_out = subprocess.check_output(["nvcc", "--version"]).decode('utf-8')
-    m = re.search(r"V[0-9]+.[0-9]+", nvcc_out)
-    str_version = m.group(0)[1:]
-    return str_version[:2]+'x'
+    #nvcc_out = subprocess.check_output(["nvcc", "--version"]).decode('utf-8')
+    #m = re.search(r"V[0-9]+.[0-9]+", nvcc_out)
+    #str_version = m.group(0)[1:]
+    #return str_version[:2]+'x'
+    return FORCE_CUDA_VERSION
 
 def get_version():
     topdir = os.path.abspath(os.path.join(__file__, '..'))
