@@ -35,14 +35,12 @@ URL = None
 DOWNLOAD_URL = None
 CLASSIFIERS = None
 PLATFORMS = None
-FORCE_CUDA_VERSION='11x'
 
 def get_cuda_version():
-    #nvcc_out = subprocess.check_output(["nvcc", "--version"]).decode('utf-8')
-    #m = re.search(r"V[0-9]+.[0-9]+", nvcc_out)
-    #str_version = m.group(0)[1:]
-    #return str_version[:2]+'x'
-    return FORCE_CUDA_VERSION
+    nvcc_out = subprocess.check_output(["nvcc", "--version"]).decode('utf-8')
+    m = re.search(r"V[0-9]+.[0-9]+", nvcc_out)
+    str_version = m.group(0)[1:]
+    return str_version[:2]+'x'
 
 def get_version():
     topdir = os.path.abspath(os.path.join(__file__, '..'))
@@ -129,6 +127,5 @@ setup(
         'dftd3==0.7.0',
         'dftd4==3.5.0',
         'geometric',
-        f'gpu4pyscf-libxc-cuda{CUDA_VERSION}',
     ],
 )

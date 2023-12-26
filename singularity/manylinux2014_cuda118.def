@@ -1,0 +1,38 @@
+Bootstrap: docker
+From: quay.io/pypa/manylinux2014_x86_64:2023-09-24-36b93e4 
+
+%files
+    # wget https://developer.download.nvidia.com/compute/cuda/11.8.0/local_installers/cuda_11.8.0_520.61.05_linux.run
+    ~/Downloads/cuda_11.8.0_520.61.05_linux.run ./
+
+%post
+    yum install -y wget curl perl util-linux xz bzip2 git patch which perl zlib-devel
+    yum install -y yum-utils centos-release-scl
+    yum clean all
+
+    # remove unncessary python versions
+    rm -rf /opt/python/cp26-cp26m /opt/_internal/cpython-2.6.9-ucs2
+    rm -rf /opt/python/cp26-cp26mu /opt/_internal/cpython-2.6.9-ucs4
+    rm -rf /opt/python/cp33-cp33m /opt/_internal/cpython-3.3.6
+    rm -rf /opt/python/cp34-cp34m /opt/_internal/cpython-3.4.6
+    rm -rf /opt/python/cp36-cp36m /opt/_internal/cpython-3.6.15
+    rm -rf /opt/python/cp37-cp37m /opt/_internal/cpython-cpython-3.7.17
+    rm -rf /opt/python/pp37-pypy37_pp73 /opt/_internal/pp37-pypy37_pp73
+    rm -rf /opt/python/pp38-pypy38_pp73 /opt/_internal/pp38-pypy38_pp73
+    rm -rf /opt/python/pp39-pypy39_pp73 /opt/_internal/pp39-pypy39_pp73
+    rm -rf /opt/python/pp310-pypy310_pp73 /opt/_internal/pp310-pypy310_pp73
+
+    #install cuda
+    chmod +x cuda_11.8.0_520.61.05_linux.run
+    ./cuda_11.8.0_520.61.05_linux.run --toolkit --silent
+    rm -f cuda_11.8.0_520.61.05_linux.run
+    ln -s /usr/local/cuda-11.8 /usr/local/cuda
+
+%environment
+    export CUDA_HOME="/usr/local/cuda" 
+    export LD_LIBRARY_PATH="${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}"
+    #export CUTENSOR_DIR=/usr/local/cuda
+    export PATH=$CUDA_HOME/bin:$PATH
+    export PATH=/opt/python/cp311-cp311/bin:$PATH
+
+

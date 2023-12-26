@@ -1,5 +1,23 @@
 GPU plugin for PySCF
 ====================
+
+## Updated for compute capability 6.0 and build loally with singularity image - s.farr@acellera.com
+
+
+Steps to build wheels:
+
+1. create the singularity image:
+
+    ```singularty build singularity/manylinux2014_cuda118.sif singularity/manylinux2014_cuda118```
+
+2. build wheel:
+
+    ```
+    singularity shell singularity/manylinux2014_cuda118.sif
+    >> . ./build.sh
+    ```
+
+
 Installation
 --------
 
