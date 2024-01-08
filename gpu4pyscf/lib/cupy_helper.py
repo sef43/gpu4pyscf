@@ -154,7 +154,9 @@ def add_sparse(a, b, indices):
         count = 1
     else:
         raise RuntimeError('add_sparse only supports 2d or 3d tensor')
+    stream = cupy.cuda.get_current_stream()
     err = libcupy_helper.add_sparse(
+        ctypes.cast(stream.ptr, ctypes.c_void_p),
         ctypes.cast(a.data.ptr, ctypes.c_void_p),
         ctypes.cast(b.data.ptr, ctypes.c_void_p),
         ctypes.cast(indices.data.ptr, ctypes.c_void_p),
@@ -264,15 +266,17 @@ def take_last2d(a, indices, out=None):
         raise RuntimeError('failed in take_last2d kernel')
     return out
 
-def transpose_sum(a):
+def transpose_sum(a, stream=None):
     '''
-    transpose (0,2,1)
+    return a + a.transpose(0,2,1)
     '''
     assert a.flags.c_contiguous
     assert a.ndim == 3
     n = a.shape[-1]
     count = a.shape[0]
+    stream = cupy.cuda.get_current_stream()
     err = libcupy_helper.transpose_sum(
+        ctypes.cast(stream.ptr, ctypes.c_void_p),
         ctypes.cast(a.data.ptr, ctypes.c_void_p),
         ctypes.c_int(n),
         ctypes.c_int(count)

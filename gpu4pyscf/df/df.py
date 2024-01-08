@@ -22,7 +22,7 @@ from cupyx.scipy.linalg import solve_triangular
 from pyscf import lib
 from pyscf.df import df, addons
 from gpu4pyscf.lib.cupy_helper import (
-    cholesky, tag_array, get_avail_mem, cart2sph, take_last2d)
+    cholesky, tag_array, get_avail_mem, cart2sph, take_last2d, transpose_sum)
 from gpu4pyscf.df import int3c2e, df_jk
 from gpu4pyscf.lib import logger
 from gpu4pyscf import __config__
@@ -34,6 +34,8 @@ LINEAR_DEP_TOL = 1e-7
 
 class DF(df.DF):
     from gpu4pyscf.lib.utils import to_gpu, device
+
+    _keys = {'intopt'}
 
     def __init__(self, mol, auxbasis=None):
         super().__init__(mol, auxbasis)
@@ -210,8 +212,12 @@ def cholesky_eri_gpu(intopt, mol, auxmol, cd_low, omega=None, sr_only=False):
     if(not use_gpu_memory):
         log.debug("Not enough GPU memory")
         # TODO: async allocate memory
-        mem = cupy.cuda.alloc_pinned_memory(naux * npair * 8)
-        cderi = np.ndarray([naux, npair], dtype=np.float64, order='C', buffer=mem)
+        try:
+            mem = cupy.cuda.alloc_pinned_memory(naux * npair * 8)
+            cderi = np.ndarray([naux, npair], dtype=np.float64, order='C', buffer=mem)
+        except Exception:
+            raise RuntimeError('Out of CPU memory')
+
     data_stream = cupy.cuda.stream.Stream(non_blocking=False)
     count = 0
     nq = len(intopt.log_qs)
@@ -256,7 +262,8 @@ def cholesky_eri_gpu(intopt, mol, auxmol, cd_low, omega=None, sr_only=False):
         row = intopt.ao_pairs_row[cp_ij_id] - i0
         col = intopt.ao_pairs_col[cp_ij_id] - j0
         if cpi == cpj:
-            ints_slices = ints_slices + ints_slices.transpose([0,2,1])
+            #ints_slices = ints_slices + ints_slices.transpose([0,2,1])
+            transpose_sum(ints_slices)
         ints_slices = ints_slices[:,col,row]
 
         if cd_low.tag == 'eig':
@@ -273,7 +280,6 @@ def cholesky_eri_gpu(intopt, mol, auxmol, cd_low, omega=None, sr_only=False):
             with data_stream:
                 for i in range(naux):
                     cderi_block[i].get(out=cderi[i,ij0:ij1])
-
         t1 = log.timer_debug1(f'solve {cp_ij_id} / {nq}', *t1)
 
     cupy.cuda.Device().synchronize()
