@@ -1,7 +1,7 @@
 GPU plugin for PySCF
 ====================
 
-## Updated for compute capability 6.0 and build loally with singularity image - s.farr@acellera.com
+## Updated for compute capability 6.0 and build loally with singularity image
 
 
 Steps to build wheels:
